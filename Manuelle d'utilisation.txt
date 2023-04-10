@@ -1,0 +1,7 @@
+Touches du jeu :
+
+Flèches directionelles pour le déplacement
+
+Espace pour attaquer
+
+Les coeurs rendent de la vie
