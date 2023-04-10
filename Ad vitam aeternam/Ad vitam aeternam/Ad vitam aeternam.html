@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Ad vitam aeternam</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js">
+    </script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+
+
+<body>
+    <script type="text/javascript">
+
+
+
+        var config = {
+            type: Phaser.AUTO,
+            width: 1280, height: 720,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    debug: false
+                }
+            },
+            input: { gamepad: true },
+
+            scene: { preload: preload, create: create, update: update },
+            pixelArt: true
+
+
+        };
+
+        new Phaser.Game(config);
+
+        function preload() { //Preload de touts mes sprites
+            this.load.spritesheet('perso', 'assets/Mage_moove.png',
+                { frameWidth: 32, frameHeight: 62 });
+            this.load.image('crypt2', 'assets/crypt2.png');
+            this.load.image('Healthbar05', 'assets/Healthbar05.png');
+            this.load.image('Healthbar04', 'assets/Healthbar04.png');
+            this.load.image('Healthbar03', 'assets/Healthbar03.png');
+            this.load.image('Healthbar02', 'assets/Healthbar02.png');
+            this.load.image('Healthbar01', 'assets/Healthbar01.png');
+
+            this.load.tilemapTiledJSON("carte", "assets/crypt2.json");
+
+            this.load.spritesheet('Skeleton', 'assets/Skeleton.png', { frameWidth: 32, frameHeight: 62 });
+            this.load.spritesheet('Skeleton_Archer', 'assets/Skeleton_archer.png', { frameWidth: 32, frameHeight: 62 });
+            this.load.spritesheet('Slime', 'assets/Slime.png', { frameWidth: 32, frameHeight: 32 });
+            this.load.spritesheet('Ghost', 'assets/ghost.png', { frameWidth: 32, frameHeight: 50 });
+
+            this.load.spritesheet('Slash', 'assets/Slash.png', { frameWidth: 32, frameHeight: 32 });
+            this.load.spritesheet('Slash2', 'assets/Slash2.png', { frameWidth: 32, frameHeight: 32 });
+            this.load.spritesheet('Slash3', 'assets/Slash3.png', { frameWidth: 32, frameHeight: 32 });
+            this.load.spritesheet('Slash4', 'assets/Slash4.png', { frameWidth: 32, frameHeight: 32 });
+
+            this.load.spritesheet('IceBook', 'assets/IceBook.png', { frameWidth: 32, frameHeight: 32 });
+            this.load.spritesheet('Heart', 'assets/Heart.png', { frameWidth: 32, frameHeight: 32 });
+        }
+
+
+        var cursors;
+        var player;
+        var hp = 4;
+        var Skeleton1hp = 1;
+        var Skeleton2hp = 1;
+        var Skeleton3hp = 1;
+        var Skeleton4hp = 1;
+        var Skeleton5hp = 1;
+        var SkeletonArcher1hp = 1;
+        var SkeletonArcher2hp = 1;
+        var SkeletonArcher3hp = 1;
+        var scoreText;
+        var gameOver = false;
+        var invincibility = false;
+        var chrono = 0;
+        var hp_bar;
+        var Skeleton1Speed = 45;
+        var Skeleton2Speed = 45;
+        var Skeleton3Speed = 45;
+        var Skeleton4Speed = 45;
+        var Skeleton5Speed = 45;
+        var Ghost1Speed = 20;
+        var Slash;
+        var Ice = 0;
+        var Slime1hp =1;
+        var Slime2hp =1;
+        var Slime3hp =1;
+        var Slime4hp =1;
+
+
+
+
+        sens = 1;
+
+        function gameOver() { //tentative d'écran titre "GameOver"
+            if (gameOver=true){
+
+            this.add.text(200, 250, "Game Over", { font: "40px Arial", fill: "#ff0000" });
+            }
+        }
+
+        function create() {
+
+            this.clavier = this.input.keyboard.addKeys('SPACE'); //création de la touche SPACE
+
+            const carteDuNiveau = this.add.tilemap("carte"); //Importation de la carte
+
+            const tileset = carteDuNiveau.addTilesetImage(
+                "crypt2",
+                "crypt2"
+            );
+            const déco_sol = carteDuNiveau.createLayer(
+                "déco_sol",
+                tileset
+            );
+
+
+
+            const murs1 = carteDuNiveau.createLayer(
+                "murs1",
+                tileset
+            );
+
+
+            const décors = carteDuNiveau.createLayer(
+                "décors",
+                tileset
+            );
+
+
+
+
+
+
+
+
+
+            murs1.setCollisionByProperty({ estSolide: true }); // Collision des murs
+
+
+            player = this.physics.add.sprite(1950, 1600, 'perso'); // Fait apparraitre le joueur
+            player.setCollideWorldBounds(false);
+
+            this.cameras.main.startFollow(player);
+            player.setSize(29, 48) // Taille de la hitbox du joueur
+            player.setOffset(2, 14) // Coordonée de la hitbox du joueur
+
+
+
+
+
+
+
+            Skeleton1 = this.physics.add.sprite(1696, 864, 'Skeleton'); // Fait apparaitres des ennemis aux coordonées souhaitées
+            Skeleton2 = this.physics.add.sprite(2200, 929, 'Skeleton');
+            Skeleton3 = this.physics.add.sprite(966, 1633, 'Skeleton');
+            Skeleton4 = this.physics.add.sprite(1337, 1633, 'Skeleton');
+            Skeleton5 = this.physics.add.sprite(1150, 1913, 'Skeleton');
+            SkeletonArcher1 = this.physics.add.sprite(2483, 897, 'Skeleton_Archer');
+            SkeletonArcher2 = this.physics.add.sprite(2254, 566, 'Skeleton_Archer');
+            SkeletonArcher3 = this.physics.add.sprite(1838, 555, 'Skeleton_Archer');
+
+            Ghost1 = this.physics.add.sprite(1100, 1080, 'Ghost');
+
+
+
+            Slime1 = this.physics.add.sprite(1486, 1089, 'Slime');
+            Slime2 = this.physics.add.sprite(2350, 569, 'Slime');
+            Slime3 = this.physics.add.sprite(2033, 569, 'Slime');
+            Slime4 = this.physics.add.sprite(1998, 539, 'Slime');
+
+            IceBook = this.physics.add.sprite(1841, 374, 'IceBook');
+            Heart1 = this.physics.add.sprite(2545, 574, 'Heart');
+            Heart2 = this.physics.add.sprite(1939, 865, 'Heart');
+
+
+            Slime1.body.immovable = true; // Empêche le joueur de déplacer les ennemis
+            Slime2.body.immovable = true;
+            Slime3.body.immovable = true;
+            Slime4.body.immovable = true;
+            Skeleton1.body.immovable = true;
+            Skeleton2.body.immovable = true;
+            Skeleton3.body.immovable = true;
+            Skeleton4.body.immovable = true;
+            Skeleton5.body.immovable = true;
+            SkeletonArcher1.body.immovable = true;
+            SkeletonArcher2.body.immovable = true;
+            SkeletonArcher3.body.immovable = true;
+            Slime1.body.immovable = true;
+            Slime1.body.immovable = true;
+            Slime1.body.immovable = true;
+
+
+            Skeleton1.setSize(25, 48) // Taille de la hitbox du Skeleton
+            Skeleton1.setOffset(4, 3.5) // Coordonée de la hitbox du Skeleton
+            Skeleton2.setSize(25, 48)
+            Skeleton2.setOffset(4, 3.5)
+            SkeletonArcher1.setSize(25, 48)
+            SkeletonArcher1.setOffset(4, 3.5)
+            SkeletonArcher2.setSize(25, 48)
+            SkeletonArcher2.setOffset(4, 3.5)
+            SkeletonArcher3.setSize(25, 48)
+            SkeletonArcher3.setOffset(4, 3.5)
+
+
+
+
+
+
+            this.physics.add.collider(player, murs1); // Collision entre le joueurs et les murs
+
+            this.physics.add.collider(Skeleton1, murs1);// Collision des ennemis
+            this.physics.add.collider(Skeleton1, Skeleton2);
+            this.physics.add.collider(Skeleton1, Skeleton3);
+            this.physics.add.collider(Skeleton1, Skeleton4);
+            this.physics.add.collider(Skeleton1, Skeleton5);
+
+            this.physics.add.collider(Skeleton2, murs1);
+            this.physics.add.collider(Skeleton2, Skeleton1);
+            this.physics.add.collider(Skeleton2, Skeleton3);
+            this.physics.add.collider(Skeleton2, Skeleton4);
+            this.physics.add.collider(Skeleton2, Skeleton5);
+
+            this.physics.add.collider(Skeleton3, murs1);
+            this.physics.add.collider(Skeleton3, Skeleton1);
+            this.physics.add.collider(Skeleton3, Skeleton2);
+            this.physics.add.collider(Skeleton3, Skeleton4);
+            this.physics.add.collider(Skeleton3, Skeleton5);
+
+            this.physics.add.collider(Skeleton4, murs1);
+            this.physics.add.collider(Skeleton4, Skeleton1);
+            this.physics.add.collider(Skeleton4, Skeleton3);
+            this.physics.add.collider(Skeleton4, Skeleton2);
+            this.physics.add.collider(Skeleton4, Skeleton5);
+
+            this.physics.add.collider(Skeleton5, murs1);
+            this.physics.add.collider(Skeleton5, Skeleton1);
+            this.physics.add.collider(Skeleton5, Skeleton3);
+            this.physics.add.collider(Skeleton5, Skeleton4);
+            this.physics.add.collider(Skeleton5, Skeleton2);
+
+
+
+            hp_bar = this.add.image(250, 200, 'Healthbar05'); // Gère l'apparition de la barre de vie et le déplacement de l'UI en fonction de la caméra
+            hp_bar.setScrollFactor(0);
+            this.cameras.main.startFollow(player);
+
+
+            // redimentionnement du monde avec les dimensions calculées via tiled
+            this.physics.world.setBounds(0, 0, 91204, 91204);
+            //  ajout du champs de la caméra de taille identique à celle du monde
+            this.cameras.main.setBounds(0, 0, 91204, 91204);
+            // ancrage de la caméra sur le joueur
+            //this.cameras.main.startFollow(player);
+            this.cameras.main.zoom = 1.4;
+
+
+            this.anims.create({ // Animation de déplacement du joueur
+                key: 'left',
+                frames: this.anims.generateFrameNumbers('perso', { start: 14, end: 16 }),
+                frameRate: 10,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'turn',
+                frames: [{ key: 'perso', frame: 0 }],
+                frameRate: 20
+            });
+
+            this.anims.create({
+                key: 'up',
+                frames: this.anims.generateFrameNumbers('perso', { start: 5, end: 9 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'down',
+                frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 4 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'right',
+                frames: this.anims.generateFrameNumbers('perso', { start: 10, end: 13 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'attack',
+                frames: this.anims.generateFrameNumbers('Slash', { start: 0, end: 0 }),
+                frameRate: 10,
+                repeat: 0
+
+
+            });
+
+            this.anims.create({ // Tentative d'animation du slime en slime gelé
+                key: 'freeze',
+                frames: this.anims.generateFrameNumbers('Slime', { start: 1, end: 2 }),
+                frameRate: 10,
+                repeat: 0
+
+
+            });
+
+            cursors = this.input.keyboard.createCursorKeys();
+
+
+
+
+        }
+       
+
+
+
+        canMove = true
+        function update() {
+            //console.log(chrono);
+
+            
+            
+            // Afficher les coordonnées dans la console
+            console.log(player.x, player.y)
+
+
+            this.physics.add.collider(player, Skeleton1, hitEnemy, null, this); // Collision pour fonction de dégats entre Ennemis et Joueur
+            this.physics.add.collider(player, Skeleton2, hitEnemy, null, this);
+            this.physics.add.collider(player, Skeleton3, hitEnemy, null, this);
+            this.physics.add.collider(player, Skeleton4, hitEnemy, null, this);
+            this.physics.add.collider(player, Skeleton5, hitEnemy, null, this);
+            
+            this.physics.add.collider(player, SkeletonArcher1, hitEnemy, null, this);
+            this.physics.add.collider(player, SkeletonArcher2, hitEnemy, null, this);
+            this.physics.add.collider(player, SkeletonArcher3, hitEnemy, null, this);
+            this.physics.add.collider(player, Slime1, hitEnemy, null, this);
+            this.physics.add.collider(player, Slime2, hitEnemy, null, this);
+            this.physics.add.collider(player, Slime3, hitEnemy, null, this);
+            this.physics.add.collider(player, Slime4, hitEnemy, null, this);
+            this.physics.add.overlap(player, Ghost1, hitEnemy, null, this);
+
+            this.physics.add.collider(Skeleton1,Slash, hitplayer, null, this);
+            this.physics.add.collider(Skeleton2,Slash, hitplayer2, null, this);
+            this.physics.add.collider(SkeletonArcher1,Slash, hitplayer3, null, this);
+            this.physics.add.collider(SkeletonArcher2,Slash, hitplayer4, null, this);
+            this.physics.add.collider(SkeletonArcher3,Slash, hitplayer5, null, this);
+            this.physics.add.collider(SkeletonArcher3,Slime1, hitplayer6, null, this);
+            this.physics.add.collider(Skeleton3,Slash, hitplayer7, null, this);
+            this.physics.add.collider(Skeleton4,Slash, hitplayer8, null, this);
+            this.physics.add.collider(Skeleton5,Slash, hitplayer9, null, this);
+
+            this.physics.add.overlap(player,Heart1, heal1, null, this);
+            this.physics.add.overlap(player,Heart2, heal2, null, this);
+
+            this.physics.add.overlap(player,IceBook, IceBonus, null, this);
+          
+
+
+
+            if (invincibility == true) { // Création des frame d'invincibilité
+                if (chrono < 80) {
+                    chrono++;
+                    player.setTint(0xff0000);
+                }
+                if (chrono >= 80) {
+                    invincibility = false;
+                    chrono = 0;
+                    player.setTint(0xffffff);
+                }
+            }
+
+            function IceBonus(player, IceBook) { // Optention du bonus de glace (IceBook)
+                if (Ice ==0)
+                Ice +=1
+                IceBook.destroy();
+            }
+
+            function hitEnemy(player, enemy) { // Fonction de dégats infligé aux joueurs par différents ennemis
+                if (hp == 4 && invincibility == false) {
+                    hp_bar.setTexture('Healthbar04');
+                    hp -= 1;
+                    invincibility = true;
+                }
+                else if (hp == 3 && invincibility == false) {
+                    hp_bar.setTexture('Healthbar03');
+                    hp -= 1;
+                    invincibility = true;
+                }
+                else if (hp == 2 && invincibility == false) {
+                    hp_bar.setTexture('Healthbar02');
+                    hp -= 1;
+                    invincibility = true;
+                }
+                else if (hp == 1 && invincibility == false) {
+                    hp_bar.setTexture('Healthbar01');
+                    hp = 0;
+                    invincibility = true;
+                    player.setTint(0xff0000);
+                    gameOver = true;
+                }
+            }
+
+            function heal1(player, Heart1) { // Fonction de heals grace au coeurs
+                if (hp === 3) {
+                    hp_bar.setTexture('Healthbar05');
+                    hp += 1;
+                    Heart1.destroy();
+                }
+                else if (hp === 2) {
+                    hp_bar.setTexture('Healthbar04');
+                    hp += 1;
+                    Heart1.destroy();
+                }
+                else if (hp === 1) {
+                    hp_bar.setTexture('Healthbar03');
+                    hp += 1;
+                    Heart1.destroy();
+                }
+                else if (hp === 4) {
+                    hp_bar.setTexture('Healthbar05');
+                    
+                    
+                }
+                else if (hp === 0) {
+                    hp_bar.setTexture('Healthbar00');
+                    
+                    
+                }
+            }
+            function heal2(player, Heart2) {
+                if (hp === 3) {
+                    hp_bar.setTexture('Healthbar05');
+                    hp += 1;
+                    Heart2.destroy();
+                }
+                else if (hp ===2) {
+                    hp_bar.setTexture('Healthbar04');
+                    hp += 1;
+                    Heart2.destroy();
+                }
+                else if (hp === 1) {
+                    hp_bar.setTexture('Healthbar03');
+                    hp += 1;
+                    Heart2.destroy();
+                }
+                else if (hp === 4) {
+                    hp_bar.setTexture('Healthbar05');
+                    
+                    
+                }
+                else if (hp === 0) {
+                    hp_bar.setTexture('Healthbar00');
+                    
+                    
+                }
+            }
+
+
+
+            function hitplayer(enemy, player) { //inflige des dégats au Skeleton et le détruit si les conditions sont requises
+                if (Skeleton1hp == 1) {
+                    Skeleton1hp -= 1;
+                    
+                }
+
+                else if (Skeleton1hp == 0) {
+                    Skeleton1hp = 0;
+                    Skeleton1.destroy();
+                }
+            }
+
+            function hitplayer2(enemy, player) { //inflige des dégats au Skeleton et le détruit si les conditions sont requises
+                if (Skeleton2hp == 1) {
+                    Skeleton2hp -= 1;
+                    
+                }
+
+                else if (Skeleton2hp == 0) {
+                    Skeleton2hp = 0;
+                    Skeleton2.destroy();
+                }
+            }
+            function hitplayer3(enemy, player) { //inflige des dégats au Skeleton et le détruit si les conditions sont requises
+                if (SkeletonArcher1hp == 1) {
+                    SkeletonArcher1hp -= 1;
+                    
+                }
+
+                else if (SkeletonArcher1hp == 0) {
+                    SkeletonArcher1hp = 0;
+                    SkeletonArcher1.destroy();
+                }
+            }
+            function hitplayer4(enemy, player) { //inflige des dégats au Skeleton et le détruit si les conditions sont requises
+                if (SkeletonArcher2hp == 1) {
+                    SkeletonArcher2hp -= 1;
+                    
+                }
+
+                else if (SkeletonArcher2hp == 0) {
+                    SkeletonArcher2hp = 0;
+                    SkeletonArcher2.destroy();
+                }
+            }
+            function hitplayer5(enemy, player) { //inflige des dégats au Skeleton et le détruit si les conditions sont requises
+                if (SkeletonArcher3hp == 1) {
+                    SkeletonArcher3hp -= 1;
+                    
+                }
+
+                else if (SkeletonArcher3hp == 0) {
+                    SkeletonArcher3hp = 0;
+                    SkeletonArcher3.destroy();
+                }
+            }
+            function hitplayer6(enemy, player) { //inflige des dégats au Slime et le détruit si les conditions sont requises + tentative de nécessité le bonus de glace
+                if (Slime1hp == 1 && Ice == 1) {
+                    Slime1hp -= 1;
+                    Slime1.anims.play('Freeze',true);
+                    
+                }
+
+                else if (Slime1hp == 0) {
+                    Slime1hp = 0;
+                    Slime1.destroy();
+                }
+            }
+
+            function hitplayer7(enemy, player) { //inflige des dégats au Skeleton et le détruit si les conditions sont requises
+                if (Skeleton3hp == 1) {
+                    Skeleton3hp -= 1;
+                    
+                }
+
+                else if (Skeleton3hp == 0) {
+                    Skeleton3hp = 0;
+                    Skeleton3.destroy();
+                }
+            }
+
+            function hitplayer8(enemy, player) { //inflige des dégats au Skeleton et le détruit si les conditions sont requises
+                if (Skeleton4hp == 1) {
+                    Skeleton4hp -= 1;
+                    
+                }
+
+                else if (Skeleton4hp == 0) {
+                    Skeleton4hp = 0;
+                    Skeleton4.destroy();
+                }
+            }
+
+            function hitplayer9(enemy, player) { //inflige des dégats au Skeleton et le détruit si les conditions sont requises
+                if (Skeleton5hp == 1) {
+                    Skeleton5hp -= 1;
+                    
+                }
+
+                else if (Skeleton5hp == 0) {
+                    Skeleton5hp = 0;
+                    Skeleton5.destroy();
+                }
+            }
+
+            if (gameOver) {
+                return;
+            }
+
+            if (this.clavier.SPACE.isDown && cursors.left.isUp && cursors.right.isUp && cursors.up.isUp) { //créer un sprite "Slash" qui inflige des dégats. Problème non résolu --> le sprite reste visible apres l'attaque
+                Slash = this.physics.add.sprite(player.x, player.y + 45, 'Slash4');
+
+            }
+            else{
+            
+            }
+
+            if (this.clavier.SPACE.isDown && cursors.left.isDown && cursors.down.isUp && cursors.right.isUp && cursors.up.isUp) {
+                Slash = this.physics.add.sprite(player.x - 45, player.y, 'Slash3');
+
+
+            }
+            if (this.clavier.SPACE.isDown && cursors.right.isDown && cursors.left.isUp && cursors.down.isUp && cursors.up.isUp) {
+                Slash = this.physics.add.sprite(player.x + 45, player.y, 'Slash');
+
+
+            }
+            if (this.clavier.SPACE.isDown && cursors.up.isDown && cursors.left.isUp && cursors.right.isUp && cursors.down.isUp) {
+                Slash = this.physics.add.sprite(player.x, player.y - 45, 'Slash2');
+
+
+            }
+
+
+
+            if (cursors.left.isDown) { //si la touche gauche est appuyée
+                player.setVelocityX(-160); //alors vitesse négative en X
+                player.anims.play('left', true); //et animation => gauche
+
+
+
+
+
+            }
+            else if (cursors.right.isDown) { //sinon si la touche droite est appuyée
+                player.setVelocityX(160); //alors vitesse positive en X
+                player.anims.play('right', true); //et animation => droite
+
+
+
+
+
+            }
+            else if (cursors.down.isDown) { //descendre plus vite
+                player.setVelocityY(160);
+                player.anims.play('down', true); //et animation => haut
+
+
+            }
+            else if (cursors.up.isDown) { //descendre plus vite
+                player.setVelocityY(-160);
+                player.anims.play('up', true); //et animation => descendre
+
+                player.setVelocityY(-160);
+            }
+            else { // sinon
+                player.setVelocityX(0); //vitesse nulle
+                player.setVelocityY(0)
+                player.anims.play('turn'); //animation fait face caméra
+
+
+            }
+
+            if (!gameOver) {
+                var dx = player.x - Skeleton1.x;
+                var dy = player.y - Skeleton1.y;
+                var distance = Math.sqrt(dx * dx + dy * dy); // calculer la distance entre Skeleton1 et le joueur
+
+                if (distance < 200 && Skeleton1hp>0 ) { // ne poursuit le joueur que si la distance est inférieure à 200 pixels
+                    var angle = Math.atan2(dy, dx);
+                    Skeleton1.setVelocity(Math.cos(angle) * Skeleton1Speed, Math.sin(angle) * Skeleton1Speed);
+                }
+                else if (distance >= 300 && Skeleton1hp>0) { // arrêter Skeleton1 s'il est trop éloigné
+                    Skeleton1.setVelocity(0);
+                }
+
+                var dx = player.x - Skeleton2.x;
+                var dy = player.y - Skeleton2.y;
+                distance = Math.sqrt(dx * dx + dy * dy); // recalculer la distance entre Skeleton2 et le joueur
+
+                if (distance < 200 && Skeleton2hp >0) { // ne poursuit le joueur que si la distance est inférieure à 200 pixels
+                    var angle = Math.atan2(dy, dx);
+                    Skeleton2.setVelocity(Math.cos(angle) * Skeleton2Speed, Math.sin(angle) * Skeleton2Speed);
+
+                }
+
+                else if (distance >= 300 && Skeleton2hp>0) { // arrêter Skeleton1 s'il est trop éloigné
+                    Skeleton2.setVelocity(0);
+                }
+                var dx = player.x - Skeleton3.x;
+                var dy = player.y - Skeleton3.y;
+                distance = Math.sqrt(dx * dx + dy * dy); // recalculer la distance entre Skeleton3 et le joueur
+
+                if (distance < 200 && Skeleton3hp >0) { // ne poursuit le joueur que si la distance est inférieure à 200 pixels
+                    var angle = Math.atan2(dy, dx);
+                    Skeleton3.setVelocity(Math.cos(angle) * Skeleton3Speed, Math.sin(angle) * Skeleton3Speed);
+
+                }
+
+                else if (distance >= 300 && Skeleton3hp>0) { // arrêter Skeleton3 s'il est trop éloigné
+                    Skeleton3.setVelocity(0);
+                }
+                var dx = player.x - Skeleton4.x;
+                var dy = player.y - Skeleton4.y;
+                distance = Math.sqrt(dx * dx + dy * dy); // recalculer la distance entre Skeleton4 et le joueur
+
+                if (distance < 200 && Skeleton4hp >0) { // ne poursuit le joueur que si la distance est inférieure à 200 pixels
+                    var angle = Math.atan2(dy, dx);
+                    Skeleton4.setVelocity(Math.cos(angle) * Skeleton4Speed, Math.sin(angle) * Skeleton4Speed);
+
+                }
+
+                else if (distance >= 300 && Skeleton4hp>0) { // arrêter Skeleton4 s'il est trop éloigné
+                    Skeleton4.setVelocity(0);
+                }
+                var dx = player.x - Skeleton5.x;
+                var dy = player.y - Skeleton5.y;
+                distance = Math.sqrt(dx * dx + dy * dy); // recalculer la distance entre Skeleton5 et le joueur
+
+                if (distance < 200 && Skeleton5hp >0) { // ne poursuit le joueur que si la distance est inférieure à 200 pixels
+                    var angle = Math.atan2(dy, dx);
+                    Skeleton5.setVelocity(Math.cos(angle) * Skeleton5Speed, Math.sin(angle) * Skeleton5Speed);
+
+                }
+
+                else if (distance >= 300 && Skeleton5hp>0) { // arrêter Skeleton5 s'il est trop éloigné
+                    Skeleton5.setVelocity(0);
+                }
+            }
+
+
+            var dx = player.x - Ghost1.x;
+            var dy = player.y - Ghost1.y;
+            distance = Math.sqrt(dx * dx + dy * dy); // recalculer la distance entre Ghost1 et le joueur
+
+            if (distance < 250) { // ne poursuit le joueur que si la distance est inférieure à 200 pixels
+                var angle = Math.atan2(dy, dx);
+                Ghost1.setVelocity(Math.cos(angle) * Ghost1Speed, Math.sin(angle) * Ghost1Speed);
+
+            }
+
+            else if (distance >= 500) { // arrêter Ghost1 s'il est trop éloigné
+                Ghost1.setVelocity(0);
+            }
+
+
+
+
+
+
+
+
+        }
+
+
+
+    </script>
+</body>
+
+</html>
